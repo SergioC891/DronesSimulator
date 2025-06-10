@@ -34,6 +34,8 @@ public class Drone : MonoBehaviour
     private GameObject UIControllerObj;
     private bool scanSpaceForFreeResource = true;
 
+    private LineRenderer droneLineRenderer;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -59,6 +61,11 @@ public class Drone : MonoBehaviour
             droneAgentActive = true;
         }
 
+        droneLineRenderer = GetComponent<LineRenderer>();
+        droneLineRenderer.startWidth = 0.15f;
+        droneLineRenderer.endWidth = 0.15f;
+        droneLineRenderer.positionCount = 0;
+
         putDroneToScene();
     }
 
@@ -75,6 +82,23 @@ public class Drone : MonoBehaviour
         droneAgent.enabled = true;
         droneAgentActive = true;
         droneAgent.speed = droneSpeed;
+    }
+
+    void drawPath()
+    {
+        droneLineRenderer.positionCount = droneAgent.path.corners.Length;
+        droneLineRenderer.SetPosition(0, transform.position);
+
+        if (droneAgent.path.corners.Length < 2)
+        {
+            return;
+        }
+
+        for (int i = 1; i < droneAgent.path.corners.Length; i++)
+        {
+            Vector3 pointPosition = new Vector3(droneAgent.path.corners[i].x, droneAgent.path.corners[i].y, droneAgent.path.corners[i].z);
+            droneLineRenderer.SetPosition(i, pointPosition);
+        }
     }
 
     void determineBase()
@@ -200,6 +224,20 @@ public class Drone : MonoBehaviour
                 moveToBase = false;
             }
         }
+
+        if (droneAgent.hasPath)
+        {
+            if (UIControllerObj.GetComponent<UISettings>().getShowPath())
+            {
+                droneLineRenderer.enabled = true;
+                drawPath();
+            } 
+            else
+            {
+                droneLineRenderer.enabled = false;
+            }
+        }
+
     }
 
     void scanSpaceForResources()
